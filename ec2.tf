@@ -75,6 +75,7 @@ resource "template_file" "es" {
     elasticsearch_version = "${var.elasticsearch_version}"
     region = "${var.region}"
     security_groups = "${aws_security_group.es.id}"
+    cluster_name = "${var.name}"
   }
 
   lifecycle {
