@@ -69,7 +69,32 @@ resource "aws_autoscaling_group" "es" {
 }
 
 resource "template_file" "es" {
-  template = "${file("user-data.txt")}"
+  template = <<TEMPLATE
+#!/bin/bash -ei
+NODE_NAME=$(hostname)
+
+curl -s https://packages.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
+echo "deb http://packages.elastic.co/elasticsearch/${replace(elasticsearch_version, "/\.\d+$/", ".x")}/debian stable main" | sudo tee -a /etc/apt/sources.list.d/elasticsearch.list
+
+sudo apt-get update
+sudo apt-get install -y openjdk-7-jre-headless elasticsearch
+
+sudo cat <<EOF >> /etc/elasticsearch/elasticsearch.yml
+node.name: $NODE_NAME
+cluster.name: ${cluster_name}
+network.host: _site_
+discovery:
+  type: ec2
+  ec2:
+    groups: "${security_groups}"
+cloud.aws:
+  region: "${region}"
+EOF
+
+/usr/share/elasticsearch/bin/plugin install cloud-aws
+
+sudo service elasticsearch restart
+TEMPLATE
 
   vars {
     elasticsearch_version = "${var.elasticsearch_version}"

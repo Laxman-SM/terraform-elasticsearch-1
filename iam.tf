@@ -1,7 +1,22 @@
 resource "aws_iam_policy" "es" {
   name = "${var.name}Access"
   description = "Allows listing EC2 instances. Used by elasticsearch for cluster discovery"
-  policy = "${file("policy.json")}"
+  policy = <<POLICY
+{
+  "Statement": [
+    {
+      "Action": [
+        "ec2:DescribeInstances"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "*"
+      ]
+    }
+  ],
+  "Version": "2012-10-17"
+}
+POLICY
 }
 
 resource "aws_iam_policy_attachment" "es" {
@@ -12,7 +27,21 @@ resource "aws_iam_policy_attachment" "es" {
 
 resource "aws_iam_role" "es" {
   name = "${var.name}Node"
-  assume_role_policy = "${file("assume-role-policy.json")}"
+  assume_role_policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+POLICY
 
   lifecycle {
     create_before_destroy = true
