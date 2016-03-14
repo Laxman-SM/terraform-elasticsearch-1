@@ -16,3 +16,7 @@ module "ami" {
 output "dns_name" {
   value = "${aws_elb.es.dns_name}"
 }
+
+output "security_group_id" {
+  value = "${aws_security_group.elb.id}"
+}
