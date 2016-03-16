@@ -37,7 +37,7 @@ resource "aws_security_group_rule" "elb_es" {
 }
 
 resource "aws_security_group" "es" {
-  name = "elasticsearch-node"
+  name = "${var.name}-node"
   description = "Allows inter-node communication between Elasticsearch nodes"
 
   vpc_id = "${var.vpc_id}"
