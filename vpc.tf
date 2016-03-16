@@ -9,6 +9,15 @@ resource "aws_security_group" "elb" {
   }
 }
 
+resource "aws_security_group_rule" "elb_default" {
+  type        = "ingress"
+  from_port   = 9200
+  to_port     = 9200
+  protocol    = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
+  security_group_id = "${aws_security_group.elb.id}"
+}
+
 resource "aws_security_group_rule" "elb_http" {
   type        = "ingress"
   from_port   = 80
