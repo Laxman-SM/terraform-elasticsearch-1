@@ -20,7 +20,7 @@ resource "aws_lambda_function" "stats" {
 
   vpc_config {
     subnet_ids = ["${split(",", var.subnet_ids)}"]
-    security_group_ids = ["${aws_security_group.function.id}"]
+    security_group_ids = ["${aws_security_group.stats.id}"]
   }
 }
 

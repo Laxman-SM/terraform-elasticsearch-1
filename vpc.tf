@@ -91,3 +91,36 @@ resource "aws_security_group" "es" {
     create_before_destroy = true
   }
 }
+
+resource "aws_security_group" "stats" {
+  name = "${var.name}-stats"
+  description = "Allows stats lambda function to access elb"
+
+  vpc_id = "${var.vpc_id}"
+
+  egress {
+    from_port = 80
+    to_port   = 80
+    protocol  = "tcp"
+    security_groups = ["${aws_security_group.elb_es.id}"]
+  }
+
+  egress {
+    from_port = 9200
+    to_port   = 9200
+    protocol  = "tcp"
+    security_groups = ["${aws_security_group.elb_es.id}"]
+  }
+
+  egress {
+    from_port = 0
+    to_port   = 0
+    protocol  = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
