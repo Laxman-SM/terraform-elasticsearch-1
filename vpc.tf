@@ -102,14 +102,14 @@ resource "aws_security_group" "stats" {
     from_port = 80
     to_port   = 80
     protocol  = "tcp"
-    security_groups = ["${aws_security_group.elb_es.id}"]
+    security_groups = ["${aws_security_group.elb.id}"]
   }
 
   egress {
     from_port = 9200
     to_port   = 9200
     protocol  = "tcp"
-    security_groups = ["${aws_security_group.elb_es.id}"]
+    security_groups = ["${aws_security_group.elb.id}"]
   }
 
   egress {
