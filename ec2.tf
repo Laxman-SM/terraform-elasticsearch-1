@@ -101,7 +101,7 @@ resource "aws_cloudwatch_metric_alarm" "es_low_storage" {
   period = 900
   statistic = "Average"
   alarm_description = "Increase the elasticsearch cluster when there is less than 10% free storage capacity"
-  threshold = "${(var.volume_size * 1000000000) * 0.1}"
+  threshold = "${(var.volume_size * 1000000000) / 10}"
   alarm_actions = ["${aws_autoscaling_policy.es_increase.arn}"]
 }
 
