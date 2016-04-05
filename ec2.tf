@@ -76,6 +76,48 @@ resource "aws_autoscaling_group" "es" {
   }
 }
 
+resource "aws_autoscaling_policy" "es_increase" {
+  name = "${var.name}CapacityIncrease"
+  autoscaling_group_name = "${aws_autoscaling_group.es.name}"
+  adjustment_type = "ChangeInCapacity"
+  scaling_adjustment = 1
+  cooldown = 300
+}
+
+resource "aws_autoscaling_policy" "es_decrease" {
+  name = "${var.name}CapacityIncrease"
+  autoscaling_group_name = "${aws_autoscaling_group.es.name}"
+  adjustment_type = "ChangeInCapacity"
+  scaling_adjustment = -1
+  cooldown = 300
+}
+
+resource "aws_cloudwatch_metric_alarm" "es_low_storage" {
+  alarm_name = "${var.name}LowStorage"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods = 2
+  metric_name = "FreeStorage"
+  namespace = "${var.name}"
+  period = 1800
+  statistic = "Average"
+  alarm_description = "Increase the elasticsearch cluster when there is less than 10% free storage capacity"
+  threshold = "${(var.volume_size * var.cluster_size) * 0.1 * 1000000000}"
+  alarm_actions = ["${aws_autoscaling_policy.es_increase.arn}"]
+}
+
+resource "aws_cloudwatch_metric_alarm" "es_storage_surplus" {
+  alarm_name = "${var.name}SurplusStorage"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods = 2
+  metric_name = "FreeStorage"
+  namespace = "${var.name}"
+  period = 1800
+  statistic = "Average"
+  alarm_description = "Decrease the elasticsearch cluster when there is more than a node's worth of storage capacity available"
+  threshold = "${(var.volume_size * 1.1) * 1000000000}"
+  alarm_actions = ["${aws_autoscaling_policy.es_decrease.arn}"]
+}
+
 resource "template_file" "es" {
   template = <<TEMPLATE
 #!/bin/bash -ei
