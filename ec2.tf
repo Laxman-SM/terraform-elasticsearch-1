@@ -98,7 +98,7 @@ resource "aws_cloudwatch_metric_alarm" "es_low_storage" {
   evaluation_periods = 2
   metric_name = "FreeStorage"
   namespace = "${var.name}"
-  period = 1800
+  period = 900
   statistic = "Average"
   alarm_description = "Increase the elasticsearch cluster when there is less than 10% free storage capacity"
   threshold = "${(var.volume_size * var.cluster_size) * 0.1 * 1000000000}"
@@ -111,7 +111,7 @@ resource "aws_cloudwatch_metric_alarm" "es_storage_surplus" {
   evaluation_periods = 2
   metric_name = "FreeStorage"
   namespace = "${var.name}"
-  period = 1800
+  period = 900
   statistic = "Average"
   alarm_description = "Decrease the elasticsearch cluster when there is more than a node's worth of storage capacity available"
   threshold = "${(var.volume_size * 1.1) * 1000000000}"
