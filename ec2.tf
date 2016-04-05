@@ -85,7 +85,7 @@ resource "aws_autoscaling_policy" "es_increase" {
 }
 
 resource "aws_autoscaling_policy" "es_decrease" {
-  name = "${var.name}CapacityIncrease"
+  name = "${var.name}CapacityDecrease"
   autoscaling_group_name = "${aws_autoscaling_group.es.name}"
   adjustment_type = "ChangeInCapacity"
   scaling_adjustment = -1
