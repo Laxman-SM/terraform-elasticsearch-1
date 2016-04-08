@@ -133,6 +133,7 @@ sudo cat <<EOF >> /etc/elasticsearch/elasticsearch.yml
 node.name: $NODE_NAME
 cluster.name: ${cluster_name}
 network.host: _site_
+index.number_of_replicas: ${number_of_replicas}
 discovery:
   type: ec2
   ec2:
@@ -151,6 +152,7 @@ TEMPLATE
     region = "${var.region}"
     security_groups = "${aws_security_group.es.id}"
     cluster_name = "${var.name}"
+    number_of_replicas = "${var.cluster_size - 1}"
   }
 
   lifecycle {
