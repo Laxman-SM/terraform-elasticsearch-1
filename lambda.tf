@@ -15,6 +15,7 @@ resource "aws_lambda_function" "stats" {
   handler = "index.handler"
   filename = "${module.stats.filepath}"
   timeout = 30
+  runtime = "nodejs4.3"
 
   role = "${aws_iam_role.stats.arn}"
 
