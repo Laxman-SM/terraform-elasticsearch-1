@@ -126,8 +126,10 @@ NODE_NAME=$(hostname)
 curl -s https://packages.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
 echo "deb http://packages.elastic.co/elasticsearch/${replace(elasticsearch_version, "/\.\d+$/", ".x")}/debian stable main" | sudo tee -a /etc/apt/sources.list.d/elasticsearch.list
 
+sudo add-apt-repository ppa:webupd8team/java
+echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | sudo debconf-set-selections
 sudo apt-get update
-sudo apt-get install -y openjdk-7-jre-headless elasticsearch
+sudo apt-get install -y oracle-java8-installer oracle-java8-set-default elasticsearch
 
 sudo cat <<EOF >> /etc/elasticsearch/elasticsearch.yml
 node.name: $NODE_NAME
