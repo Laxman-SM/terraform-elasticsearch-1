@@ -121,7 +121,10 @@ resource "aws_cloudwatch_metric_alarm" "es_storage_surplus" {
 resource "template_file" "es" {
   template = <<TEMPLATE
 #!/bin/bash -ei
-NODE_NAME=$(hostname)
+NODE_NAME=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+if [ -z "$NODE_NAME" ]; then
+  NODE_NAME=$(hostname)
+fi
 
 curl -s https://packages.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
 echo "deb http://packages.elastic.co/elasticsearch/${replace(elasticsearch_version, "/\.\d+$/", ".x")}/debian stable main" | sudo tee -a /etc/apt/sources.list.d/elasticsearch.list
