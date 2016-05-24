@@ -134,7 +134,7 @@ echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | 
 sudo apt-get update
 sudo apt-get install -y oracle-java8-installer oracle-java8-set-default elasticsearch
 
-sudo cat <<EOF >> /etc/elasticsearch/elasticsearch.yml
+cat <<EOF | sudo tee /etc/elasticsearch/elasticsearch.yml
 node.name: $NODE_NAME
 cluster.name: ${cluster_name}
 network.host: _site_
