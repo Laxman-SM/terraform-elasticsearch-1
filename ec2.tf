@@ -23,11 +23,11 @@ resource "aws_elb" "es" {
   }
 
   health_check {
-    healthy_threshold = 2
-    unhealthy_threshold = 2
-    timeout = 3
+    healthy_threshold = 10
+    unhealthy_threshold = 10
+    timeout = 60
     target = "HTTP:9200/_cluster/health"
-    interval = 30
+    interval = 300
   }
 }
 
