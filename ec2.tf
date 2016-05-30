@@ -76,6 +76,14 @@ resource "aws_autoscaling_group" "es" {
   }
 }
 
+resource "aws_autoscaling_lifecycle_hook" "lifecycle" {
+  name = "${var.name}Lifecycle"
+  autoscaling_group_name = "${aws_autoscaling_group.es.name}"
+  lifecycle_transition = "autoscaling:EC2_INSTANCE_TERMINATING"
+  notification_target_arn = "${aws_sqs_queue.lifecycle.arn}"
+  role_arn = "${aws_iam_role.lifecycle.arn}"
+}
+
 resource "aws_autoscaling_policy" "es_increase" {
   name = "${var.name}CapacityIncrease"
   autoscaling_group_name = "${aws_autoscaling_group.es.name}"
@@ -150,14 +158,45 @@ EOF
 /usr/share/elasticsearch/bin/plugin install cloud-aws
 
 sudo service elasticsearch restart
+
+cat <<EOF | sudo tee /etc/lifecycled
+AWS_REGION=${region}
+LIFECYCLED_DEBUG=true
+LIFECYCLED_QUEUE=${lifecycle_queue}
+LIFECYCLED_INSTANCEID=$NODE_NAME
+LIFECYCLED_HANDLER=/usr/bin/elasticsearch-lifecycle-handler
+EOF
+
+sudo curl -Lf -o /usr/bin/lifecycled https://github.com/lox/lifecycled/releases/download/${lifecycled_version}/lifecycled-linux-x86_64
+sudo chmod +x /usr/bin/lifecycled
+
+sudo curl -Lf -o /etc/systemd/system/lifecycled.unit https://raw.githubusercontent.com/lox/lifecycled/${lifecycled_version}/init/systemd/lifecycled.conf
+
+cat <<EOF | sudo tee /usr/bin/elasticsearch-lifecycle-handler
+#!/bin/sh -eu
+echo "stopping elasticsearch gracefully"
+service elasticsearch stop
+while pgrep -U $(id -u elasticsearch) > /dev/null; do
+  sleep 0.5
+done
+echo "elasticsearch stopped!"
+EOF
+
+sudo chmod +x /usr/bin/elasticsearch-lifecycle-handler
+
+sudo systemctl daemon-reload
+sudo systemctl enable lifecycled
+sudo systemctl start lifecycled
 TEMPLATE
 
   vars {
     elasticsearch_version = "${var.elasticsearch_version}"
+    lifecycled_version = "${var.lifecycled_version}"
     region = "${var.region}"
     security_groups = "${aws_security_group.es.id}"
     cluster_name = "${var.name}"
     number_of_replicas = "${var.cluster_size - 1}"
+    lifecycle_queue = "${aws_sqs_queue.lifecycle.id}"
   }
 
   lifecycle {

@@ -59,3 +59,8 @@ variable "elasticsearch_version" {
   default = "2.2"
   description = "The version of elasticsearch to install"
 }
+
+variable "lifecycled_version" {
+  default = "v1.1.2"
+  description = "The version of lifecycled to install"
+}

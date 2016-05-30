@@ -36,8 +36,7 @@ resource "aws_iam_role" "es" {
       "Principal": {
         "Service": "ec2.amazonaws.com"
       },
-      "Effect": "Allow",
-      "Sid": ""
+      "Effect": "Allow"
     }
   ]
 }
@@ -64,7 +63,6 @@ resource "aws_iam_role" "stats" {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "",
       "Effect": "Allow",
       "Principal": {
         "Service": "lambda.amazonaws.com"
@@ -84,7 +82,6 @@ resource "aws_iam_role_policy" "stats" {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "Stmt1459302288332",
       "Action": [
         "logs:CreateLogGroup",
         "logs:CreateLogStream",
@@ -96,6 +93,43 @@ resource "aws_iam_role_policy" "stats" {
       ],
       "Effect": "Allow",
       "Resource": "*"
+    }
+  ]
+}
+POLICY
+}
+
+resource "aws_iam_role" "lifecycle" {
+  name = "${var.name}Lifecycle"
+  assume_role_policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "autoscaling.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+POLICY
+}
+
+resource "aws_iam_role_policy" "lifecycle" {
+  name = "${var.name}Lifecycle"
+  role = "${aws_iam_role.lifecycle.id}"
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "sqs:*"
+      ],
+      "Effect": "Allow",
+      "Resource": "${aws_sqs_queue.lifecycle.arn}"
     }
   ]
 }
