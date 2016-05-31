@@ -71,6 +71,12 @@ resource "aws_autoscaling_group" "es" {
     propagate_at_launch = true
   }
 
+  tag {
+    key = "Role"
+    value = "elasticsearch-${var.name}"
+    propagate_at_launch = true
+  }
+  
   lifecycle {
     create_before_destroy = true
   }
