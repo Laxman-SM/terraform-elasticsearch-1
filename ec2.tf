@@ -76,7 +76,7 @@ resource "aws_autoscaling_group" "es" {
     value = "elasticsearch-${var.name}"
     propagate_at_launch = true
   }
-  
+
   lifecycle {
     create_before_destroy = true
   }
@@ -141,6 +141,7 @@ resource "template_file" "es" {
     region = "${var.region}"
     security_groups = "${aws_security_group.es.id}"
     cluster_name = "${var.name}"
+    minimum_master_nodes = "${format("%d", (var.cluster_size / 2) + 1)}"
     number_of_replicas = "${var.cluster_size - 1}"
     lifecycle_queue = "${aws_sqs_queue.lifecycle.id}"
   }

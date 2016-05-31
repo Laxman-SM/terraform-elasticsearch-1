@@ -19,6 +19,7 @@ network.host: _site_
 index.number_of_replicas: ${number_of_replicas}
 discovery:
   type: ec2
+  zen.minimum_master_nodes: ${minimum_master_nodes}
   ec2:
     groups: "${security_groups}"
 cloud.aws:
