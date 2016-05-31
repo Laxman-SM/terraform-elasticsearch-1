@@ -1,0 +1,59 @@
+#!/bin/bash -ei
+NODE_NAME=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+if [ -z "$NODE_NAME" ]; then
+  NODE_NAME=$(hostname)
+fi
+
+curl -s https://packages.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
+echo "deb http://packages.elastic.co/elasticsearch/${replace(elasticsearch_version, "/\.\d+$/", ".x")}/debian stable main" | sudo tee -a /etc/apt/sources.list.d/elasticsearch.list
+
+sudo add-apt-repository ppa:webupd8team/java
+echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | sudo debconf-set-selections
+sudo apt-get update
+sudo apt-get install -y oracle-java8-installer oracle-java8-set-default elasticsearch
+
+cat <<EOF | sudo tee /etc/elasticsearch/elasticsearch.yml
+node.name: $NODE_NAME
+cluster.name: ${cluster_name}
+network.host: _site_
+index.number_of_replicas: ${number_of_replicas}
+discovery:
+  type: ec2
+  ec2:
+    groups: "${security_groups}"
+cloud.aws:
+  region: "${region}"
+EOF
+
+/usr/share/elasticsearch/bin/plugin install cloud-aws
+
+sudo service elasticsearch restart
+
+cat <<EOF | sudo tee /etc/lifecycled
+AWS_REGION=${region}
+LIFECYCLED_DEBUG=true
+LIFECYCLED_QUEUE=${lifecycle_queue}
+LIFECYCLED_INSTANCEID=$NODE_NAME
+LIFECYCLED_HANDLER=/usr/bin/elasticsearch-lifecycle-handler
+EOF
+
+sudo curl -Lf -o /usr/bin/lifecycled https://github.com/lox/lifecycled/releases/download/${lifecycled_version}/lifecycled-linux-x86_64
+sudo chmod +x /usr/bin/lifecycled
+
+sudo curl -Lf -o /etc/systemd/system/lifecycled.unit https://raw.githubusercontent.com/lox/lifecycled/${lifecycled_version}/init/systemd/lifecycled.unit
+
+cat <<EOF | sudo tee /usr/bin/elasticsearch-lifecycle-handler
+#!/bin/sh -eu
+echo "stopping elasticsearch gracefully"
+service elasticsearch stop
+while pgrep -U $(id -u elasticsearch) > /dev/null; do
+  sleep 0.5
+done
+echo "elasticsearch stopped!"
+EOF
+
+sudo chmod +x /usr/bin/elasticsearch-lifecycle-handler
+
+sudo systemctl daemon-reload
+sudo systemctl enable lifecycled
+sudo systemctl start lifecycled
