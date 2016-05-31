@@ -40,7 +40,7 @@ EOF
 sudo curl -Lf -o /usr/bin/lifecycled https://github.com/lox/lifecycled/releases/download/${lifecycled_version}/lifecycled-linux-x86_64
 sudo chmod +x /usr/bin/lifecycled
 
-sudo curl -Lf -o /etc/systemd/system/lifecycled.unit https://raw.githubusercontent.com/lox/lifecycled/${lifecycled_version}/init/systemd/lifecycled.unit
+sudo curl -Lf -o /etc/init/lifecycled.conf https://raw.githubusercontent.com/lox/lifecycled/${lifecycled_version}/init/upstart/lifecycled.conf
 
 cat <<EOF | sudo tee /usr/bin/elasticsearch-lifecycle-handler
 #!/bin/sh -eu
@@ -54,6 +54,4 @@ EOF
 
 sudo chmod +x /usr/bin/elasticsearch-lifecycle-handler
 
-sudo systemctl daemon-reload
-sudo systemctl enable lifecycled
-sudo systemctl start lifecycled
+sudo start lifecycled
