@@ -55,7 +55,7 @@ resource "aws_launch_configuration" "es" {
 resource "aws_autoscaling_group" "es" {
   name = "${var.name}"
   health_check_grace_period = 300
-  health_check_type = "ELB"
+  health_check_type = "EC2"
 
   desired_capacity = "${var.cluster_size}"
   min_size = "${var.cluster_size}"
