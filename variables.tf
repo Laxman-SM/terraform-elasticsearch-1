@@ -45,6 +45,11 @@ variable "cluster_size" {
   description = "Size of the cluster"
 }
 
+variable "scaling_free_storage_threshold" {
+  default = 15
+  description = "Scale when free storage is or below this threshold"
+}
+
 variable "name" {
   default = "elasticsearch"
   description = "The elasticsearch cluster name"
