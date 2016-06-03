@@ -16,6 +16,7 @@ cat <<EOF | sudo tee /etc/elasticsearch/elasticsearch.yml
 node.name: $NODE_NAME
 cluster.name: ${cluster_name}
 network.host: _site_
+bootstrap.mlockall: true
 index.number_of_replicas: ${number_of_replicas}
 discovery:
   type: ec2
