@@ -57,7 +57,6 @@ resource "aws_autoscaling_group" "es" {
   health_check_grace_period = 300
   health_check_type = "EC2"
 
-  desired_capacity = "${var.cluster_size}"
   min_size = "${var.cluster_size}"
   max_size = "${(var.cluster_size * 2) - 1}"
   vpc_zone_identifier = ["${split(",", var.subnet_ids)}"]
