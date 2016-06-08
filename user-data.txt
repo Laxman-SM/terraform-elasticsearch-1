@@ -57,3 +57,4 @@ EOF
 sudo chmod +x /usr/bin/elasticsearch-lifecycle-handler
 
 sudo start lifecycled
+
