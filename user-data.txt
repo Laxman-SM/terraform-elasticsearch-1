@@ -4,6 +4,22 @@ if [ -z "$NODE_NAME" ]; then
   NODE_NAME=$(hostname)
 fi
 
+echo -e "${ssh_keys}" >> /home/ubuntu/.ssh/authorized_keys
+
+# Swap
+sudo umount /dev/xvdb
+sudo mkswap /dev/xvdb
+sudo swapon /dev/xvdb
+grep -q '^/dev/xvdb' /etc/fstab && sed -i 's/^\/dev\/xvdb.*/\/dev\/xvdb none swap sw 0 0/' /etc/fstab || echo '/dev/xvdb none swap sw 0 0' >> /etc/fstab
+
+# EBS to ext4
+if sudo file -s /dev/xvdf | grep '/dev/xvdf: data' > /dev/null; then
+  sudo mkfs -t ext4 /dev/xvdf
+  sudo mkdir /srv/elasticsearch
+  sudo mount /dev/xvdf /srv/elasticsearch
+  grep -q '^/dev/xvdf' /etc/fstab && sed -i 's/^\/dev\/xvdf.*/\/dev\/xvdf \/srv\/elasticsearch ext4 defaults,nofail 0 2/' /etc/fstab || echo '/dev/xvdf /srv/elasticsearch ext4 defaults,nofail 0 2' >> /etc/fstab
+fi
+
 curl -s https://packages.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
 echo "deb http://packages.elastic.co/elasticsearch/${replace(elasticsearch_version, "/\.\d+$/", ".x")}/debian stable main" | sudo tee -a /etc/apt/sources.list.d/elasticsearch.list
 
@@ -11,6 +27,8 @@ sudo add-apt-repository ppa:webupd8team/java
 echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | sudo debconf-set-selections
 sudo apt-get update
 sudo apt-get install -y oracle-java8-installer oracle-java8-set-default elasticsearch
+sudo mkdir -p /srv/elasticsearch/log /srv/elasticsearch/data
+sudo chown -R elasticsearch:elasticsearch /srv/elasticsearch/log /srv/elasticsearch/data
 
 cat <<EOF | sudo tee /etc/elasticsearch/elasticsearch.yml
 node.name: $NODE_NAME
@@ -18,6 +36,9 @@ cluster.name: ${cluster_name}
 network.host: _site_
 bootstrap.mlockall: true
 index.number_of_replicas: ${number_of_replicas}
+path:
+  logs: /srv/elasticsearch/log
+  data: /srv/elasticsearch/data
 discovery:
   type: ec2
   zen.minimum_master_nodes: ${minimum_master_nodes}
@@ -30,31 +51,3 @@ EOF
 /usr/share/elasticsearch/bin/plugin install cloud-aws
 
 sudo service elasticsearch restart
-
-cat <<EOF | sudo tee /etc/lifecycled
-AWS_REGION=${region}
-LIFECYCLED_DEBUG=true
-LIFECYCLED_QUEUE=${lifecycle_queue}
-LIFECYCLED_INSTANCEID=$NODE_NAME
-LIFECYCLED_HANDLER=/usr/bin/elasticsearch-lifecycle-handler
-EOF
-
-sudo curl -Lf -o /usr/bin/lifecycled https://github.com/lox/lifecycled/releases/download/${lifecycled_version}/lifecycled-linux-x86_64
-sudo chmod +x /usr/bin/lifecycled
-
-sudo curl -Lf -o /etc/init/lifecycled.conf https://raw.githubusercontent.com/lox/lifecycled/${lifecycled_version}/init/upstart/lifecycled.conf
-
-cat <<EOF | sudo tee /usr/bin/elasticsearch-lifecycle-handler
-#!/bin/sh -eu
-echo "stopping elasticsearch gracefully"
-service elasticsearch stop
-while pgrep -U $(id -u elasticsearch) > /dev/null; do
-  sleep 0.5
-done
-echo "elasticsearch stopped!"
-EOF
-
-sudo chmod +x /usr/bin/elasticsearch-lifecycle-handler
-
-sudo start lifecycled
-

@@ -31,6 +31,45 @@ resource "aws_elb" "es" {
   }
 }
 
+resource "aws_instance" "es" {
+  count           = "${var.cluster_size}"
+  instance_type   = "${var.instance_type}"
+  ami             = "${coalesce(var.image_id, module.ami.ami_id)}"
+  key_name        = "${var.key_name}"
+  subnet_id       = "${element(split(",", var.subnet_ids), count.index)}"
+
+  iam_instance_profile = "${aws_iam_instance_profile.es.id}"
+  vpc_security_group_ids = ["${aws_security_group.es.id}"]
+
+  user_data = "${template_file.es.rendered}"
+
+  root_block_device {
+    volume_type           = "gp2"
+    volume_size           = "${var.volume_size_root}"
+    delete_on_termination = true
+  }
+
+  ebs_block_device {
+    device_name           = "/dev/sdf"
+    volume_type           = "gp2"
+    volume_size           = "${var.volume_size_data}"
+    delete_on_termination = false
+  }
+
+  ephemeral_block_device {
+    device_name  = "/dev/sdb"
+    virtual_name = "ephemeral0"
+  }
+
+  tags {
+    Role = "${var.name}"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
 resource "aws_launch_configuration" "es" {
   name_prefix = "${var.name}-"
 
@@ -44,7 +83,7 @@ resource "aws_launch_configuration" "es" {
 
   root_block_device {
     volume_type = "gp2"
-    volume_size = "${var.volume_size}"
+    volume_size = "${var.volume_size_data}"
   }
 
   lifecycle {
@@ -114,7 +153,7 @@ resource "aws_cloudwatch_metric_alarm" "es_low_storage" {
   period = 900
   statistic = "Average"
   alarm_description = "Increase the elasticsearch cluster when there is less than ${var.scaling_free_storage_threshold}% free storage capacity"
-  threshold = "${(var.volume_size * 1000000000.0) * (var.scaling_free_storage_threshold / 100.0)}"
+  threshold = "${(var.volume_size_data * 1000000000.0) * (var.scaling_free_storage_threshold / 100.0)}"
   alarm_actions = ["${aws_autoscaling_policy.es_increase.arn}"]
 }
 
@@ -127,7 +166,7 @@ resource "aws_cloudwatch_metric_alarm" "es_storage_surplus" {
   period = 900
   statistic = "Average"
   alarm_description = "Decrease the elasticsearch cluster when there is more than a node's worth of storage capacity available"
-  threshold = "${(var.volume_size * 1000000000.0) * (1.0 + (var.scaling_free_storage_threshold / 100.0))}"
+  threshold = "${(var.volume_size_data * 1000000000.0) * (1.0 + (var.scaling_free_storage_threshold / 100.0))}"
   alarm_actions = ["${aws_autoscaling_policy.es_decrease.arn}"]
 }
 
@@ -142,6 +181,7 @@ resource "template_file" "es" {
     cluster_name = "${var.name}"
     minimum_master_nodes = "${format("%d", (var.cluster_size / 2) + 1)}"
     number_of_replicas = "${var.cluster_size - 1}"
+    ssh_keys = "${var.ssh_keys}"
     lifecycle_queue = "${aws_sqs_queue.lifecycle.id}"
   }
 
