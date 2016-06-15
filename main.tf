@@ -7,7 +7,7 @@ provider "aws" {
 module "ami" {
   source = "github.com/terraform-community-modules/tf_aws_ubuntu_ami"
   region = "${var.region}"
-  distribution = "trusty"
+  distribution = "wily"
   architecture = "amd64"
   virttype = "hvm"
   storagetype = "ebs"

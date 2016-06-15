@@ -35,8 +35,13 @@ variable "instance_type" {
   description = "The EC2 instance type to use"
 }
 
-variable "volume_size" {
-  default = 100
+variable "volume_size_root" {
+  default = 50
+  description = "Size of the cluster"
+}
+
+variable "volume_size_data" {
+  default = 1000
   description = "Size of the cluster"
 }
 
@@ -55,13 +60,17 @@ variable "name" {
   description = "The elasticsearch cluster name"
 }
 
+variable "ssh_keys" {
+  description = "Add ssh keys to the cluster"
+}
+
 variable "internal_elb" {
   default = true
   description = "Make the elastic load balancer internally accessible"
 }
 
 variable "elasticsearch_version" {
-  default = "2.2"
+  default = "2.3"
   description = "The version of elasticsearch to install"
 }
 
