@@ -7,6 +7,7 @@ resource "aws_elb" "es" {
   internal = "${var.internal_elb}"
 
   security_groups = ["${aws_security_group.elb.id}"]
+  instances = ["${aws_instance.es.*.id}"]
 
   listener {
     instance_port = 9200
@@ -96,8 +97,8 @@ resource "aws_autoscaling_group" "es" {
   health_check_grace_period = 300
   health_check_type = "EC2"
 
-  min_size = "${var.cluster_size}"
-  max_size = "${(var.cluster_size * 2) - 1}"
+  min_size = 0
+  max_size = 0
   vpc_zone_identifier = ["${split(",", var.subnet_ids)}"]
 
   launch_configuration = "${aws_launch_configuration.es.name}"
