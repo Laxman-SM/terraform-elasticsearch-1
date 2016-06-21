@@ -40,9 +40,9 @@ resource "aws_instance" "es" {
   subnet_id       = "${element(split(",", var.subnet_ids), count.index)}"
 
   iam_instance_profile = "${aws_iam_instance_profile.es.id}"
-  vpc_security_group_ids = ["${aws_security_group.es.id}"]
 
   user_data = "${template_file.es.rendered}"
+  vpc_security_group_ids = ["${aws_security_group.es.id}", "${split(",", var.security_group_ids)}"]
 
   root_block_device {
     volume_type           = "gp2"

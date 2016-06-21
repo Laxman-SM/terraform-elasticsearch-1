@@ -78,3 +78,7 @@ variable "lifecycled_version" {
   default = "v1.1.2"
   description = "The version of lifecycled to install"
 }
+
+variable "security_group_ids" {
+  description = "The security group ids"
+}
