@@ -22,5 +22,5 @@ output "security_group_id" {
 }
 
 output "ip" {
-  value = "${aws_instance.es.private_ip}"
+  value = "${join(",", aws_instance.es.*.private_ip)}"
 }
