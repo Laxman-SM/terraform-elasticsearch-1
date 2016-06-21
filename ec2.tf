@@ -64,6 +64,7 @@ resource "aws_instance" "es" {
 
   tags {
     Role = "${var.name}"
+    Name = "elasticsearch-${var.name}-${count.index}"
   }
 
   lifecycle {
