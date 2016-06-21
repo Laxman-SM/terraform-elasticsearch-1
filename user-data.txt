@@ -1,4 +1,4 @@
-#!/bin/bash -ei
+#!/bin/bash -e
 NODE_NAME=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
 if [ -z "$NODE_NAME" ]; then
   NODE_NAME=$(hostname)
@@ -7,7 +7,7 @@ fi
 echo -e "${ssh_keys}" >> /home/ubuntu/.ssh/authorized_keys
 
 # Swap
-sudo umount /dev/xvdb
+sudo umount /dev/xvdb || true
 sudo mkswap /dev/xvdb
 sudo swapon /dev/xvdb
 grep -q '^/dev/xvdb' /etc/fstab && sed -i 's/^\/dev\/xvdb.*/\/dev\/xvdb none swap sw 0 0/' /etc/fstab || echo '/dev/xvdb none swap sw 0 0' >> /etc/fstab
