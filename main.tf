@@ -20,3 +20,7 @@ output "dns_name" {
 output "security_group_id" {
   value = "${aws_security_group.elb.id}"
 }
+
+output "ip" {
+  value = "${aws_instance.es.private_ip}"
+}
