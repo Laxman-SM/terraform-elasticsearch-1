@@ -72,80 +72,6 @@ resource "aws_instance" "es" {
   }
 }
 
-resource "aws_launch_configuration" "es" {
-  name_prefix = "${var.name}-"
-
-  image_id = "${coalesce(var.image_id, module.ami.ami_id)}"
-  instance_type = "${var.instance_type}"
-  key_name = "${var.key_name}"
-
-  security_groups = ["${aws_security_group.es.id}"]
-  iam_instance_profile = "${aws_iam_instance_profile.es.arn}"
-  user_data = "${template_file.es.rendered}"
-
-  root_block_device {
-    volume_type = "gp2"
-    volume_size = "${var.volume_size_data}"
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
-resource "aws_autoscaling_group" "es" {
-  name = "${var.name}"
-  health_check_grace_period = 300
-  health_check_type = "EC2"
-
-  min_size = 0
-  max_size = 0
-  vpc_zone_identifier = ["${split(",", var.subnet_ids)}"]
-
-  launch_configuration = "${aws_launch_configuration.es.name}"
-  load_balancers = ["${aws_elb.es.id}"]
-
-  tag {
-    key = "Name"
-    value = "${var.name}"
-    propagate_at_launch = true
-  }
-
-  tag {
-    key = "Role"
-    value = "elasticsearch-${var.name}"
-    propagate_at_launch = true
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
-resource "aws_autoscaling_lifecycle_hook" "lifecycle" {
-  name = "${var.name}Lifecycle"
-  autoscaling_group_name = "${aws_autoscaling_group.es.name}"
-  lifecycle_transition = "autoscaling:EC2_INSTANCE_TERMINATING"
-  notification_target_arn = "${aws_sqs_queue.lifecycle.arn}"
-  role_arn = "${aws_iam_role.lifecycle.arn}"
-}
-
-resource "aws_autoscaling_policy" "es_increase" {
-  name = "${var.name}CapacityIncrease"
-  autoscaling_group_name = "${aws_autoscaling_group.es.name}"
-  adjustment_type = "ChangeInCapacity"
-  scaling_adjustment = 1
-  cooldown = 300
-}
-
-resource "aws_autoscaling_policy" "es_decrease" {
-  name = "${var.name}CapacityDecrease"
-  autoscaling_group_name = "${aws_autoscaling_group.es.name}"
-  adjustment_type = "ChangeInCapacity"
-  scaling_adjustment = -1
-  cooldown = 300
-}
-
 resource "aws_cloudwatch_metric_alarm" "es_low_storage" {
   alarm_name = "${var.name}LowStorage"
   comparison_operator = "LessThanThreshold"
@@ -177,14 +103,12 @@ resource "template_file" "es" {
 
   vars {
     elasticsearch_version = "${var.elasticsearch_version}"
-    lifecycled_version = "${var.lifecycled_version}"
     region = "${var.region}"
     security_groups = "${aws_security_group.es.id}"
     cluster_name = "${var.name}"
     minimum_master_nodes = "${format("%d", (var.cluster_size / 2) + 1)}"
     number_of_replicas = "${var.cluster_size - 1}"
     ssh_keys = "${var.ssh_keys}"
-    lifecycle_queue = "${aws_sqs_queue.lifecycle.id}"
   }
 
   lifecycle {
