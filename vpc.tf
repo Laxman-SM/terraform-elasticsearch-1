@@ -14,7 +14,7 @@ resource "aws_security_group_rule" "elb_default" {
   from_port   = 9200
   to_port     = 9200
   protocol    = "tcp"
-  cidr_blocks = ["0.0.0.0/0"]
+  cidr_blocks = ["${var.vpc_cidr}"]
   security_group_id = "${aws_security_group.elb.id}"
 }
 
@@ -23,7 +23,7 @@ resource "aws_security_group_rule" "elb_http" {
   from_port   = 80
   to_port     = 80
   protocol    = "tcp"
-  cidr_blocks = ["0.0.0.0/0"]
+  cidr_blocks = ["${var.vpc_cidr}"]
   security_group_id = "${aws_security_group.elb.id}"
 }
 
@@ -32,7 +32,7 @@ resource "aws_security_group_rule" "elb_https" {
   from_port   = 443
   to_port     = 443
   protocol    = "tcp"
-  cidr_blocks = ["0.0.0.0/0"]
+  cidr_blocks = ["${var.vpc_cidr}"]
   security_group_id = "${aws_security_group.elb.id}"
 }
 
@@ -81,9 +81,16 @@ resource "aws_security_group" "es" {
   }
 
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -112,15 +119,7 @@ resource "aws_security_group" "stats" {
     security_groups = ["${aws_security_group.elb.id}"]
   }
 
-  egress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
   lifecycle {
     create_before_destroy = true
   }
 }
-

@@ -25,6 +25,10 @@ variable "vpc_id" {
   description = "The VPC ID"
 }
 
+variable "vpc_cidr" {
+  description = "The VPC CIDR range"
+}
+
 variable "image_id" {
   default = ""
   description = "The Debian-based AMI to use"
