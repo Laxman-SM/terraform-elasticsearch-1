@@ -10,25 +10,25 @@ resource "aws_elb" "es" {
   instances = ["${aws_instance.es.*.id}"]
 
   listener {
-    instance_port = 9200
+    instance_port     = 9200
     instance_protocol = "http"
-    lb_port = 80
-    lb_protocol = "http"
+    lb_port           = 80
+    lb_protocol       = "http"
   }
 
   listener {
-    instance_port = 9200
+    instance_port     = 9200
     instance_protocol = "http"
-    lb_port = 9200
-    lb_protocol = "http"
+    lb_port           = 9200
+    lb_protocol       = "http"
   }
 
   health_check {
-    healthy_threshold = 10
+    target              = "HTTP:9200/_cluster/health"
+    healthy_threshold   = 10
     unhealthy_threshold = 10
-    timeout = 60
-    target = "HTTP:9200/_cluster/health"
-    interval = 300
+    interval            = 300
+    timeout             = 60
   }
 }
 
