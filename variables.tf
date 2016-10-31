@@ -80,4 +80,5 @@ variable "elasticsearch_version" {
 
 variable "security_group_ids" {
   description = "The security group ids"
+  default = ""
 }
