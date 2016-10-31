@@ -4,13 +4,39 @@ provider "aws" {
   region     = "${var.region}"
 }
 
-module "ami" {
-  source = "github.com/terraform-community-modules/tf_aws_ubuntu_ami"
-  region = "${var.region}"
-  distribution = "xenial"
-  architecture = "amd64"
-  virttype = "hvm"
-  storagetype = "ebs"
+data "aws_ami" "es" {
+  most_recent = true
+  executable_users = ["all", "self"]
+
+  filter {
+    name = "name"
+    value = "*/hvm-ssd/ubuntu-xenial-16.04-amd64-server*"
+  }
+
+  filter {
+    name = "architecture"
+    value = "x86_64"
+  }
+
+  filter {
+    name = "virtualization-type"
+    value = "hvm"
+  }
+
+  filter {
+    name = "hypervisor"
+    value = "xen"
+  }
+
+  filter {
+    name = "state"
+    value = "available"
+  }
+
+  filter {
+    name = "root-device-type"
+    value = "ebs"
+  }
 }
 
 output "dns_name" {
