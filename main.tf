@@ -10,32 +10,32 @@ data "aws_ami" "es" {
 
   filter {
     name = "name"
-    value = "*/hvm-ssd/ubuntu-xenial-16.04-amd64-server*"
+    values = "*/hvm-ssd/ubuntu-xenial-16.04-amd64-server*"
   }
 
   filter {
     name = "architecture"
-    value = "x86_64"
+    values = "x86_64"
   }
 
   filter {
     name = "virtualization-type"
-    value = "hvm"
+    values = "hvm"
   }
 
   filter {
     name = "hypervisor"
-    value = "xen"
+    values = "xen"
   }
 
   filter {
     name = "state"
-    value = "available"
+    values = "available"
   }
 
   filter {
     name = "root-device-type"
-    value = "ebs"
+    values = "ebs"
   }
 }
 
