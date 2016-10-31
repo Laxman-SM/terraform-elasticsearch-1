@@ -35,7 +35,7 @@ resource "aws_elb" "es" {
 resource "aws_instance" "es" {
   count           = "${var.cluster_size}"
   instance_type   = "${var.instance_type}"
-  ami             = "${coalesce(var.image_id, module.ami.ami_id)}"
+  ami             = "${coalesce(var.image_id, data.aws_ami.es.id)}"
   key_name        = "${var.key_name}"
   subnet_id       = "${element(split(",", var.subnet_ids), count.index)}"
 
