@@ -77,8 +77,3 @@ variable "elasticsearch_version" {
   default = "2.3"
   description = "The version of elasticsearch to install"
 }
-
-variable "security_group_ids" {
-  description = "The security group ids"
-  default = ""
-}
