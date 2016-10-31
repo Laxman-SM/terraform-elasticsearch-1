@@ -48,6 +48,11 @@ cloud.aws:
   region: "${region}"
 EOF
 
+# Must be changed when bootstrap.mlockall: true
+sed -ie "s%^#LimitMEMLOCK=infinity$%LimitMEMLOCK=infinity%" /usr/lib/systemd/system/elasticsearch.service
+sed -ie "s%^#MAX_LOCKED_MEMORY=unlimited$%MAX_LOCKED_MEMORY=unlimited%" /etc/default/elasticsearch
+sudo systemctl daemon-reload
+
 /usr/share/elasticsearch/bin/plugin install cloud-aws
 
 sudo service elasticsearch restart
