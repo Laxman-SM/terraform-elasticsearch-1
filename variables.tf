@@ -77,3 +77,8 @@ variable "elasticsearch_version" {
   default = "2.3"
   description = "The version of elasticsearch to install"
 }
+
+variable "replicas" {
+  default = ""
+  description = "The number of replicas per shard. Defaults to cluster size - 1."
+}

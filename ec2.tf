@@ -93,7 +93,7 @@ resource "template_file" "es" {
     security_groups = "${aws_security_group.es.id}"
     cluster_name = "${var.name}"
     minimum_master_nodes = "${format("%d", (var.cluster_size / 2) + 1)}"
-    number_of_replicas = "${var.cluster_size - 1}"
+    number_of_replicas = "${coalesce(var.replicas, var.cluster_size - 1)}"
     ssh_keys = "${var.ssh_keys}"
   }
 
