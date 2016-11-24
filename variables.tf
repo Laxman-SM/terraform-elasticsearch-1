@@ -64,17 +64,13 @@ variable "name" {
   description = "The elasticsearch cluster name"
 }
 
-variable "ssh_keys" {
-  description = "Add ssh keys to the cluster"
-}
-
 variable "internal_elb" {
   default = true
   description = "Make the elastic load balancer internally accessible"
 }
 
 variable "elasticsearch_version" {
-  default = "2.3"
+  default = "5.0"
   description = "The version of elasticsearch to install"
 }
 
